@@ -7,9 +7,9 @@ public class CellExpression extends CellValue {
 	private ArrayList<Term> terms = new ArrayList<Term>();
 	private boolean parsed;
 	
-	public CellExpression(String txtcell, String cellref) 
+	public CellExpression(String textOfCell, String referenceToCell) 
 	{
-		super(txtcell, cellref);
+		super(textOfCell, referenceToCell);
 		parsed = false;
 	}
 	

@@ -6,9 +6,9 @@ public class CellValue extends CellData
 {
 	protected static Hashtable<String, Integer> calculatedValuesTable = new Hashtable<String, Integer>(); // Table for calculated values
 	protected int valueCalculated = 0;
-	public CellValue(String txtcell, String cellref)
+	public CellValue(String textOfCell, String referenceToCell)
 	{
-		super(txtcell, cellref);
+		super(textOfCell, referenceToCell);
 	}
 	
 	public int Calculate()
@@ -22,11 +22,11 @@ public class CellValue extends CellData
 		try {
 			valueCalculated = Integer.parseInt(getTextOfCell());
 		} catch (NumberFormatException ex) {
-			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.INCORRECT_VALUE));
+			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
 			return 0;
 		}
 		if (valueCalculated < 0) {
-			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.INCORRECT_VALUE));
+			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
 			return 0;
 		}
 		setDataCalculated(true);
