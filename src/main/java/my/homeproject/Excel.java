@@ -6,9 +6,9 @@ import java.util.*;
 
 public class Excel {
 	
-	int rows;
-	int columns;
-	ArrayList<CellData> cells = new ArrayList<CellData>();
+	static int rows;
+	static int columns;
+	static ArrayList<CellData> cells = new ArrayList<CellData>();
 	PrintWriter outstream;
 	
 	public Excel(String from, String to)
@@ -90,6 +90,17 @@ public class Excel {
 		cells.add(cell);
 	}
 	
+	static public CellData getCellByReference(String referenceToCell) throws IllegalArgumentException
+	{
+		int i = (int)(referenceToCell.charAt(1) - '0') - 1;
+		int j = (int)(referenceToCell.charAt(0) - 'A');
+		
+		if ((i < 0) || (i >= rows) || (j < 0) || (j >= columns)) {
+			throw new IllegalArgumentException();
+		}
+		return cells.get(i * columns + j) ;
+	}
+	
 	public void PrintCells()
 	{
 		// Determine the column size for the columns alignment
@@ -114,15 +125,22 @@ public class Excel {
 	// We will calculate expressions by iterations. At each iteration the new values will be found 
 	// and located in the CellValue.Hashtable<cell_name, value>, where String cell_name is the cell refer like A3, B5,... 
 	// and int value is the calculated value of the cell. If the new values will not be found, we will stop iterating.
+
 	public void Calculate()
 	{
+		for(CellData cell : cells) {
+			cell.Calculate();
+		}
+		/*
 		int calculatedCellsCountOnPreviousStep = -1;
 		int calculatedCellsCount = 0;
 		while ((calculatedCellsCount = CalculationIteration()) != calculatedCellsCountOnPreviousStep) {
 			calculatedCellsCountOnPreviousStep = calculatedCellsCount;
 		}
+		*/
 	}
 
+	/*
 	private int CalculationIteration()
 	{
 		int calculatedCellsCount = 0;
@@ -131,5 +149,6 @@ public class Excel {
 		}
 		return calculatedCellsCount;
 	}
+	*/
 
 }

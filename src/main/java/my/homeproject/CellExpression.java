@@ -5,37 +5,43 @@ import java.util.*;
 public class CellExpression extends CellValue {
 
 	private ArrayList<Term> terms = new ArrayList<Term>();
-	private boolean parsed;
+	
+	private boolean calculationStarted;
 	
 	public CellExpression(String textOfCell, String referenceToCell) 
 	{
 		super(textOfCell, referenceToCell);
-		parsed = false;
+		calculationStarted = false;
 	}
 	
-	public int Calculate()
+	public Object Calculate()
 	{
-		if (getErrorMessage() != "") {
-			return 0;
+		if (calculationStarted) {
+			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.RECURSION));
+			calculationStarted = false;
+			return setCalculatedValue(null);			
 		}
-		if (isDataCalculated() == true) {
-			return 1;
+		if (isDataCalculated()) {
+			return getCalculatedValue();
 		}
 		try 
 		{
 			String expr = getTextOfCell().substring(1).toUpperCase();
 			Parse(expr);
-			return CalculationCore();
+			calculationStarted = true;
+			Object result = CalculationCore();
+			calculationStarted = false;
+			return result;
 		}
 		catch (Exception er) {
+			calculationStarted = false;
 			setErrorMessage(er.getMessage());
-			return 0;
+			return setCalculatedValue(null);
 		}
 	}
 	
-	private int CalculationCore() throws ExcelExceptions
+	private Object CalculationCore() throws ExcelExceptions
 	{
-		// The result of the expression calculation
 		int sum = 0;			
 		char nextOperation = '+';
 		boolean  shouldBeOperation = true;
@@ -47,15 +53,15 @@ public class CellExpression extends CellValue {
 				nextOperation = term.AsChar();
 				continue;
 			}
-			int val = 0;
-			if (term.CheckType(Term.TermType.REFERENCE))
+			Integer val = 0;
+			if (term instanceof Reference)
 			{
-				if (!calculatedValuesTable.containsKey(term.AsString())) {
-					// The cell value refer by 'term' is still not calculated, so expression can not be calculated
-					return 0; 
+				Object object = Excel.getCellByReference(term.AsString()).Calculate();
+				if (!(object instanceof Integer)) {
+					throw new ExcelExceptions(ErrorTypes.CANNOT_CALCULATE);
 				}
 				// Get the value that was calculated before
-				val = calculatedValuesTable.get(term.AsString());
+				val = (Integer)object;
 			} else {
 				val = term.AsInteger();
 			}
@@ -69,19 +75,11 @@ public class CellExpression extends CellValue {
 							sum /= val; break;
 			}
 		}
-		// Expression evaluation completed successfully, update table of calculated values
-		calculatedValuesTable.put(getReferenceToCell(), valueCalculated = sum);
-		setDataCalculated(true);
-		// Adding 1 to the the selected cells counter 
-		return 1;
+		return setCalculatedValue(sum);
 	}
 	
 	private void Parse(String expression) throws ExcelExceptions
 	{
-		if (parsed == true) {
-			return;
-		}
-
 		// Some checks
 		// if ( expression.matches("(^\\+?\\d.*)|^[a-zA-Z].*") ) { // Unfortunately it does not work // ^(\+?\d)|^[a-zA-Z]
 		if ( expression.length() == 0 || (Operation.Check(expression.charAt(0)) && (expression.charAt(0) != '+')) ) {
@@ -124,19 +122,29 @@ public class CellExpression extends CellValue {
 			// Last term should be Value|Reference not operation
 			throw new ExcelExceptions(ErrorTypes.SYNTAX_ERROR);
 		}
-		parsed = true;
 	}
 	
 	public String GetResult()
 	{
+		if (getErrorMessage() != "") {
+			return "#" + getErrorMessage();
+		} if (isDataCalculated()) {
+			return "" + getCalculatedValue();
+		} else {
+			// For debugging
+			return getTextOfCell();
+		}
+		
+		/*
 		if (isDataCalculated()) {
-			return "" + valueCalculated;
+			return "" + getCalculatedValue();
 		}
 		if (isDataCalculated() == false && getErrorMessage() == "") {
 			// Cases like cell D2 = D1, and cell D1 = D2 or or in some cells syntax errors
 			return "#" + ErrorTypes.GetMessage(ErrorTypes.CANNOT_EVALUATE);
 		}
 		return "#" + getErrorMessage();
+		*/
 	}
 
 }

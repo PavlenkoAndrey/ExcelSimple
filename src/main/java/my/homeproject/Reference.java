@@ -4,7 +4,7 @@ public class Reference extends Term {
 	String reference;
 	
 	Reference(String reference) {
-		super(Term.TermType.REFERENCE);
+		//super(Term.TermType.REFERENCE);
 		this.reference = reference;
 	}
 	

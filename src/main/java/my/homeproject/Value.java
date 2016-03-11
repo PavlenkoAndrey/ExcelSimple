@@ -5,7 +5,7 @@ public class Value extends Term
 	private int value;
 	
 	public Value(String s) {
-		super(Term.TermType.VALUE);
+		//super(Term.TermType.VALUE);
 		// Before calling the constructor should be checked whether s is positive integer
 		value = Integer.parseInt(s); 
 	}  
@@ -25,12 +25,12 @@ public class Value extends Term
 		return val >= 0;
 	}
 	
-	// Check whether first character is a digit
+	// Check whether first character (not zero character!) is a digit
 	// Length of s should be greater than one
 	static public boolean IsFirstDigit(String s) {
 		char ch = s.charAt(1);
-		return ch >= '0' && ch <= '9';
+		return (ch >= '0') && (ch <= '9');
 	}
-
+	
 }
 

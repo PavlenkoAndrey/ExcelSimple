@@ -5,7 +5,7 @@ public class Operation extends Term
 	private char operation;	
 	
 	public Operation(char opereation) {
-		super(Term.TermType.OPERATION);
+		//super(Term.TermType.OPERATION);
 		this.operation = opereation; 		
 	}
 	

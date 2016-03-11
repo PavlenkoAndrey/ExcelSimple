@@ -40,6 +40,6 @@ public abstract class CellData {
 		this.isDataCalculated = isCalculated;
 	}
 
-	abstract public int Calculate();
-	abstract public String GetResult();	
+	abstract public Object Calculate();
+	abstract public String GetResult();
 }

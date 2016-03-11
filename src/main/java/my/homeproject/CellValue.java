@@ -4,42 +4,49 @@ import java.util.Hashtable;
 
 public class CellValue extends CellData 
 {
-	protected static Hashtable<String, Integer> calculatedValuesTable = new Hashtable<String, Integer>(); // Table for calculated values
-	protected int valueCalculated = 0;
+	//protected static Hashtable<String, Integer> calculatedValuesTable = new Hashtable<String, Integer>(); // Table for calculated values
+	private Integer calculatedValue;
+
 	public CellValue(String textOfCell, String referenceToCell)
 	{
 		super(textOfCell, referenceToCell);
+		calculatedValue = 0;
 	}
 	
-	public int Calculate()
+	public Integer getCalculatedValue() {
+		return calculatedValue;
+	}
+
+	public Integer setCalculatedValue(Integer calculatedValue) {
+		setDataCalculated(true);
+		this.calculatedValue = calculatedValue;
+		return calculatedValue; 
+	}
+	
+	public Object Calculate()
 	{
 		if (isDataCalculated()) {
-			return 1;
-		}
-		if (getErrorMessage() != "") {
-			return 0;
+			return calculatedValue;
 		}
 		try {
-			valueCalculated = Integer.parseInt(getTextOfCell());
+			calculatedValue = Integer.parseInt(getTextOfCell());
+			if (calculatedValue < 0) {
+				throw new NumberFormatException();
+			}
 		} catch (NumberFormatException ex) {
 			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
-			return 0;
+			return setCalculatedValue(null);
 		}
-		if (valueCalculated < 0) {
-			setErrorMessage(ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
-			return 0;
-		}
-		setDataCalculated(true);
-		calculatedValuesTable.put(getReferenceToCell(), valueCalculated);
-		return 1;
+		return setCalculatedValue(calculatedValue);
+		//calculatedValuesTable.put(getReferenceToCell(), valueCalculated);
 	}
 	
 	public String GetResult()
 	{
-		if (isDataCalculated()) {
-			return "" + valueCalculated;
-		} else if (getErrorMessage() != "") {
+		if (getErrorMessage() != "") {
 			return "#" + getErrorMessage();
+		} if (isDataCalculated()) {
+			return "" + calculatedValue;
 		} else {
 			return getTextOfCell();
 		}

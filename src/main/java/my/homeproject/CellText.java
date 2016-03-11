@@ -3,24 +3,24 @@ package my.homeproject;
 public class CellText extends CellData {
 
 	private String calculatedText;
-	public CellText(String txtcell, String cellref) 
-	{
+	public CellText(String txtcell, String cellref) {
 		super(txtcell, cellref);
 		calculatedText = "";
 	}
 	
-	public int Calculate()
-	{
+	public Object Calculate() {
+		if (getErrorMessage() != "") {
+			return null;
+		}
 		if (isDataCalculated()) {
-			return 1;
+			return calculatedText;
 		}
 		calculatedText = getTextOfCell().substring(1);
 		setDataCalculated(true);
-		return 1;
+		return calculatedText;
 	}
 	
-	public String GetResult()
-	{
+	public String GetResult() {
 		if (isDataCalculated()) {
 			return calculatedText;
 		} if (getErrorMessage() != "") {
