@@ -2,11 +2,14 @@ package my.homeproject;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import my.homeproject.celldata.CellExpression;
+import my.homeproject.celldata.CellText;
+import my.homeproject.celldata.CellValue;
+import my.homeproject.exceptions.ExcelExceptions;
 
 public class TestExcel {
 
 	// Tests for calculation by recursion should be updated
-	/*
 	@Test
 	public void TestCellExpression1() {
 		CellExpression cell = new CellExpression("=10-5*3/4", "A1");
@@ -25,16 +28,17 @@ public class TestExcel {
 	public void TestCellExpression3() {
 		CellExpression cell = new CellExpression("=-12", "A1");
 		cell.Calculate();
-		assertEquals(cell.getErrorMessage(), ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
+		assertEquals(cell.getErrorMessage(), ExcelExceptions.SYNTAX_ERROR);
 	}
 
 	@Test
 	public void TestCellExpression4() {
 		CellExpression cell = new CellExpression("=1/0", "A1");
 		cell.Calculate();
-		assertEquals(cell.getErrorMessage(), ErrorTypes.GetMessage(ErrorTypes.DIVISION_BY_ZERO));
+		assertEquals(cell.getErrorMessage(), ExcelExceptions.DIVISION_BY_ZERO);
 	}
 
+	/*
 	@Test
 	public void TestCellExpression5() {
 		CellExpression cell1 = new CellExpression("=5", "A1");
@@ -50,6 +54,7 @@ public class TestExcel {
 		cell.Calculate();
 		assertEquals(cell.GetResult(), "-2");
 	}
+	*/
 
 	@Test
 	public void TestCellExpression6() {
@@ -62,7 +67,7 @@ public class TestExcel {
 	public void TestCellExpression7() {
 		CellValue cell = new CellValue("-5", "A1");
 		cell.Calculate();
-		assertEquals(cell.getErrorMessage(), ErrorTypes.GetMessage(ErrorTypes.SYNTAX_ERROR));
+		assertEquals(cell.getErrorMessage(), ExcelExceptions.SYNTAX_ERROR);
 	}
 	
 	@Test
@@ -71,6 +76,5 @@ public class TestExcel {
 		cell.Calculate();
 		assertEquals(cell.GetResult(), "Sheet");
 	}
-	*/
 	
 }

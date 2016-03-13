@@ -4,35 +4,41 @@ import java.lang.String;
 import java.io.*;
 import java.util.*;
 
+import my.homeproject.celldata.CellData;
+import my.homeproject.celldata.CellExpression;
+import my.homeproject.celldata.CellText;
+import my.homeproject.celldata.CellValue;
+import my.homeproject.exceptions.ExcelExceptions;
+import my.homeproject.exceptions.ExcelReadInputException;
+
 public class Excel {
 	
 	static int rows;
 	static int columns;
-	static ArrayList<CellData> cells = new ArrayList<CellData>();
-	PrintWriter outstream;
+	static CellData[][] cells;
+	String outputFileName;
 	
-	public Excel(String from, String to)
+	public Excel(String inputFileName, String outputFileName)
 	{
-		try {
-			OutputStream outstreamFile = (to != "cout") ? new FileOutputStream(to) : System.out;
-			outstream = new PrintWriter(outstreamFile, true);
-			
-			InputStream inpstreamFile = (from != "cin") ? new FileInputStream(from) : System.in;
-			Reader(inpstreamFile);
-			inpstreamFile.close();
+		this.outputFileName = outputFileName;
+		try (InputStream inputStreamFile = (inputFileName != "cin") ? new FileInputStream(inputFileName) : System.in;
+			 Scanner scanner = new Scanner(inputStreamFile);)
+		{
+			Reader(scanner);
 		}
-    	catch (Exception er)
-    	{
-    		outstream.println("#" + er.getMessage());
-    		System.exit(1);
-    	}
+		catch (Exception exception) {
+			if (exception.getMessage() != null) {
+				System.out.println("#" + exception.getMessage());
+				System.exit(1);
+			} else {
+				exception.printStackTrace();
+			}
+		}
 	}
 	
-	private void Reader(InputStream ist) throws Exception, ExcelExceptions
+	private void Reader(Scanner scanner) throws ExcelReadInputException
 	{
-		Scanner scan = new Scanner(ist);
-		
-		String str = scan.nextLine();
+		String str = scanner.nextLine();
 		StringTokenizer st = new StringTokenizer(str, "\t");
 		try {
 			rows = Integer.parseInt(st.nextToken());
@@ -40,44 +46,36 @@ public class Excel {
 		}
 		catch (Exception ex)
 		{
-			throw new ExcelExceptions(ErrorTypes.INCORRECT_DATA_IN_INPUT);
+			throw new ExcelReadInputException();
 		}
 		if (rows < 1 || rows > 9 || columns < 1 || columns > 26 ) {
-			throw new ExcelExceptions(ErrorTypes.INCORRECT_DATA_IN_INPUT);
+			throw new ExcelReadInputException();
 		}
 
-		cells.ensureCapacity(rows * columns);
-		for (int i = 0; scan.hasNextLine() && i < rows; ++i) {
-			str = scan.nextLine();
+		cells = new CellData[rows][columns];
+		for (int i = 0; i < rows; ++i) {
+			if (!scanner.hasNextLine()) {
+				throw new ExcelReadInputException();
+			}
+			str = scanner.nextLine();
 			// Parse the next line of the input data
 			st = new StringTokenizer(str, "\t");
-			int j = 0;
-			while (st.hasMoreTokens()) {
+			for (int j = 0; j < columns; ++j) {
+				if (!st.hasMoreTokens()) {
+					throw new ExcelReadInputException();
+				}
 				String txtcell = st.nextToken();
 				// Reference to cell like A2, B5
 				String ref = "" + (char)(j + 'A') + (char)(i + 1 + '0');
-				AddCell(txtcell, ref);
-				++j;
-				if (j == columns) {
-					// Skip the remaining data at the end of the line
-					break;
-				}
+				cells[i][j] = CreateCell(txtcell, ref);
 			}
-			if (j < columns) {
-				// The number of columns less than #columns
-				throw new ExcelExceptions(ErrorTypes.INCORRECT_DATA_IN_INPUT);
-			}
-		}
-			
-		if (cells.size() != rows * columns) {
-			throw new ExcelExceptions(ErrorTypes.INCORRECT_DATA_IN_INPUT);
 		}
 	}
 	
-	private void AddCell(String textOfCell, String referenceToCell) throws ExcelExceptions
+	private CellData CreateCell(String textOfCell, String referenceToCell) throws ExcelReadInputException
 	{
 		if (textOfCell.length() == 0)	{
-			throw new ExcelExceptions(ErrorTypes.INCORRECT_DATA_IN_INPUT);
+			throw new ExcelReadInputException();
 		}
 		CellData cell;
         if (textOfCell.charAt(0) == '\'') {
@@ -87,68 +85,64 @@ public class Excel {
         } else {
             cell = new CellValue(textOfCell, referenceToCell);
         }
-		cells.add(cell);
+        return cell;
 	}
 	
-	static public CellData getCellByReference(String referenceToCell) throws IllegalArgumentException
+	static public CellData getCellByReference(String referenceToCell) throws ExcelExceptions
 	{
 		int i = (int)(referenceToCell.charAt(1) - '0') - 1;
 		int j = (int)(referenceToCell.charAt(0) - 'A');
 		
 		if ((i < 0) || (i >= rows) || (j < 0) || (j >= columns)) {
-			throw new IllegalArgumentException();
+			// Incorrect data
+			throw new ExcelExceptions(ExcelExceptions.INCORRECT_REFERENCE);
 		}
-		return cells.get(i * columns + j) ;
+		CellData cell = cells[i][j]; 
+		if ((cell == null) || (cell != null && !cell.getReferenceToCell().equals(referenceToCell)) ) {
+			// Something wrong with algorithm			
+			throw new RuntimeException("Cell reference error");
+		}
+		return cells[i][j];
 	}
 	
-	public void PrintCells()
+	public void PrintResult()
 	{
-		// Determine the column size for the columns alignment
-		int cellsWidth[] = new int[columns];
-		for(int i = 0; i < rows; ++i) {
-			for(int j = 0; j < columns; ++j) {
-				cellsWidth[j] = Math.max(cellsWidth[j], cells.get(i * columns + j).GetResult().length());
+		try (OutputStream outStream = (outputFileName != "cout") ? new FileOutputStream(outputFileName) : System.out;
+			 PrintWriter printWriter = new PrintWriter(outStream, true);) 
+		{
+			// Determine the column size for the columns alignment
+			int cellsWidth[] = new int[columns];
+			for(int i = 0; i < rows; ++i) {
+				for(int j = 0; j < columns; ++j) {
+					cellsWidth[j] = Math.max(cellsWidth[j], cells[i][j].GetResult().length());
+				}
+			}
+			// Print data with columns alignment
+			for(int i = 0; i < rows; ++i) {
+				for(int j = 0; j < columns; ++j) {
+					String s = cells[i][j].GetResult();
+					printWriter.print(s + new String(new char[cellsWidth[j]-s.length()+2]));
+				}
+				printWriter.println();
 			}
 		}
-		// Print data with columns alignment
-		for(int i = 0; i < rows; ++i) {
-			for(int j = 0; j < columns; ++j) {
-				String s = cells.get(i * columns + j).GetResult();
-				StringBuffer sb = new StringBuffer(s.subSequence(0, s.length()));
-				sb.setLength(cellsWidth[j] + 2);
-				outstream.print(sb.toString());
+		catch (Exception exception) {
+			if (exception.getMessage() != null) {
+				System.out.println("#" + exception.getMessage());
+				System.exit(1);
+			} else {
+				exception.printStackTrace();
 			}
-			outstream.println();
 		}
 	}
 	
-	// We will calculate expressions by iterations. At each iteration the new values will be found 
-	// and located in the CellValue.Hashtable<cell_name, value>, where String cell_name is the cell refer like A3, B5,... 
-	// and int value is the calculated value of the cell. If the new values will not be found, we will stop iterating.
-
 	public void Calculate()
 	{
-		for(CellData cell : cells) {
-			cell.Calculate();
+		for(int i = 0; i < rows; ++i) {
+			for (int j = 0; j < columns; ++j) {
+				cells[i][j].Calculate();
+			}
 		}
-		/*
-		int calculatedCellsCountOnPreviousStep = -1;
-		int calculatedCellsCount = 0;
-		while ((calculatedCellsCount = CalculationIteration()) != calculatedCellsCountOnPreviousStep) {
-			calculatedCellsCountOnPreviousStep = calculatedCellsCount;
-		}
-		*/
 	}
-
-	/*
-	private int CalculationIteration()
-	{
-		int calculatedCellsCount = 0;
-		for(int i = 0; i < cells.size(); ++i) {
-			calculatedCellsCount += cells.get(i).Calculate();
-		}
-		return calculatedCellsCount;
-	}
-	*/
 
 }
