@@ -1,6 +1,8 @@
 package my.homeproject.celldata;
 
-import java.lang.String; 
+import java.lang.String;
+
+import my.homeproject.exceptions.ExcelReadInputException; 
 
 public abstract class CellData {
 	
@@ -19,6 +21,19 @@ public abstract class CellData {
 		this.textOfCell = textOfCell; 
 		calculationFinished = false; 
 		errorMessage = "";
+	}
+	
+	public static CellData CreateObject(String textOfCell, String referenceToCell) throws ExcelReadInputException {
+		if (textOfCell.length() == 0)	{
+			throw new ExcelReadInputException();
+		}
+        if (textOfCell.charAt(0) == '\'') {
+            return new CellText(textOfCell, referenceToCell);
+        } else if (textOfCell.charAt(0) == '=') {
+            return new CellExpression(textOfCell, referenceToCell);
+        } else {
+        	return new CellValue(textOfCell, referenceToCell);
+        }
 	}
 	
 	public String getTextOfCell() {

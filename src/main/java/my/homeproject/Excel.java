@@ -5,11 +5,9 @@ import java.io.*;
 import java.util.*;
 
 import my.homeproject.celldata.CellData;
-import my.homeproject.celldata.CellExpression;
-import my.homeproject.celldata.CellText;
-import my.homeproject.celldata.CellValue;
 import my.homeproject.exceptions.ExcelExceptions;
 import my.homeproject.exceptions.ExcelReadInputException;
+import my.homeproject.terms.Reference;
 
 public class Excel {
 	
@@ -64,34 +62,18 @@ public class Excel {
 				if (!st.hasMoreTokens()) {
 					throw new ExcelReadInputException();
 				}
-				String txtcell = st.nextToken();
+				String textOfCell = st.nextToken();
 				// Reference to cell like A2, B5
-				String ref = "" + (char)(j + 'A') + (char)(i + 1 + '0');
-				cells[i][j] = CreateCell(txtcell, ref);
+				String referenceToCell = Reference.IntsToString(i, j);
+				cells[i][j] = CellData.CreateObject(textOfCell, referenceToCell); 
 			}
 		}
 	}
 	
-	private CellData CreateCell(String textOfCell, String referenceToCell) throws ExcelReadInputException
-	{
-		if (textOfCell.length() == 0)	{
-			throw new ExcelReadInputException();
-		}
-		CellData cell;
-        if (textOfCell.charAt(0) == '\'') {
-            cell = new CellText(textOfCell, referenceToCell);
-        } else if (textOfCell.charAt(0) == '=') {
-            cell = new CellExpression(textOfCell, referenceToCell);
-        } else {
-            cell = new CellValue(textOfCell, referenceToCell);
-        }
-        return cell;
-	}
-	
 	static public CellData getCellByReference(String referenceToCell) throws ExcelExceptions
 	{
-		int i = (int)(referenceToCell.charAt(1) - '0') - 1;
-		int j = (int)(referenceToCell.charAt(0) - 'A');
+		int i = Reference.StringToRow(referenceToCell) ;
+		int j = Reference.StringToColumn(referenceToCell);
 		
 		if ((i < 0) || (i >= rows) || (j < 0) || (j >= columns)) {
 			// Incorrect data
