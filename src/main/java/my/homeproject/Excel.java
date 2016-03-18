@@ -14,7 +14,7 @@ public class Excel {
 	static int rows;
 	static int columns;
 	static CellData[][] cells;
-	String outputFileName;
+	private String outputFileName;
 	
 	public Excel(String inputFileName, String outputFileName)
 	{
@@ -70,7 +70,7 @@ public class Excel {
 		}
 	}
 	
-	static public CellData getCellByReference(String referenceToCell) throws ExcelExceptions
+	public static CellData getCellByReference(String referenceToCell) throws ExcelExceptions
 	{
 		int i = Reference.StringToRow(referenceToCell) ;
 		int j = Reference.StringToColumn(referenceToCell);

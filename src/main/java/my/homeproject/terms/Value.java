@@ -8,7 +8,7 @@ public class Value extends Term
 	}  
 
 	// Check whether s is a positive integer
-	static public boolean Check(String s) {
+	public static boolean Check(String s) {
 		return s.matches("^\\+?\\d+$");
 	}
 	

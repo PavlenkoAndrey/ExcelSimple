@@ -7,7 +7,6 @@ import my.homeproject.Excel;
 import my.homeproject.terms.Operation;
 import my.homeproject.terms.Reference;
 import my.homeproject.terms.Term;
-import my.homeproject.terms.Value;
 
 public class CellExpression extends CellValue {
 
@@ -47,7 +46,6 @@ public class CellExpression extends CellValue {
 				return null;
 			}
 			calculationStarted = false;
-			//String s = 
 			setErrorMessage(er.getMessage() != null ? er.getMessage() : ExcelExceptions.SYNTAX_ERROR);
 			result = null;
 		}
